@@ -71,29 +71,65 @@ Set Up Compliance Policies:
 
 Je dois maintenant créer sur Purview un label pour chiffrer les mails et fichiers contenant des informations de cartes de crédit.
 Maintenant que j'ai créé celle-ci je peux passer à la suite.
+Ici on est encore dans une phase d'amélioration et pas de recherche du coupable.
+J'ai donc configuré une "auto-labeling policy" pour exchange, sharpoint et les comptes onedrive.
+J'ai du créer cette "policy" en mode simulation pour que je puisse évaluer si ma policy était bien réglée et pouvoir ensuite la modifier/régler en fonction des résulstats. Et une fois que les résultats sont satisfaisants je peux alors valider réellement la modification.
 
 Investigate Amari’s Device in Microsoft 365 Defender:
 [We need to find out more about how this attack took place. Check Amari's device for evidence of the curl command being run on it, or any other information that provides more detail on the attack. Are there any other suspicious files?]
 
 Je commence maintenant mon enquête plus en profondeur sur microsoft defender.
+J'ai commencé par faire du "hunting" en utilisant KQL pour trouver des traces d'adresses IP utilisées par les attaquants.
+Ensuite dans le menu d'alertes j'ai trouvé des alertes conercnant des actions malveillantes effectuées par les attaquants.
+Sur le device affecté par l'attaque j'ai trouvé des fichiers notables.
 
 Search for Internal Communication Containing the IP Address:
 [The external IP address used in the attack is an Indicator of Compromise (IoC). We should search our environment for emails, documents, and Teams communication for information regarding this IoC.]
 
+Avec les adresses IPs des attaquants j'ai pu chercher du contenu lié à des échanges email et Teams.
+Pour cela j'ai filtré sur l'endroit et la condition.
 Après exportation et analyse des échanges email de la victime. J'ai remarqué qu'angel brown a envoyé par email la commande curl malveillante.
 Elle pourrait donc être elle même infectée ou être l'attaquante.
+
 
 Investigate IP Address in Sentinel:
 [The external IP address used in the attack is an Indicator of Compromise (IoC). We need to figure out if the IoC has been seen in our environment by any other sources including devices and Azure resources. We should set up an Analytics rule to immediately notify us if the IoC is accessed again.]
 
 J'ai vérifié que Amira est la seule à s'être connectée à la machine infectée et créé une règle.
+J'ai configuré la règle pour qu'elle regarde après des évènements sur le réseau liés à l'adresse IP de l'attaquant.
+Via cette règle si l'adresse IP attaquante réeffectue des actions sur le réseau cela sera directement détectés dans les logs.
 
 Configure Windows Security Baseline:
 [You noticed our devices are not configured with a standard security configuration. We should configure the devices to use a Windows Security Baseline. Not only will this help protect our users and devices, but it will also allow our team to quickly eliminate possible attack vectors based on the security configuration.]
 [Investi09]
 Configuration des divices.
+J'ai créé un profile pouir la Windows Security Baseline pour configurer les devices de façon automatique en appliquant les meilleurs politiques de sécurité dessus.
+Après analyse j'ai pu découvrir que Powershell a essayé de passer outre l'antivirus en appelant les APIs de Win32 directement.
 
+J'en ai conclu à la fin de cette phase qu'il y a eu un autre fichier extrait ShoppingList.zip .
 Step 4)
+
+Configure Azure AD Identity Protection:
+J'ai découvert que Azure AD Identity Protection n'était pas configuré automatiquement pour gérer le risque utilisateur et le risque d'authentification.
+J'ai donc remédié à cela en le configurant.
+
+Investigate Angel's Sign-In Logs:
+J'ai maintenant essayé de découvrir si les attaquants auraient pu compromettre l'identité d'Angel.
+Si oui les soupçons sur elle pourrait être amoindri si non augmentés.
+Le résultat est qu'après vérification rien n'a été trouvé concernant un vol de son identité.
+
+Investigate Angel in Sentinel and Microsoft 365 Defender:
+Après enquête sur le device qu'a utilisé Angel rien de suspect n'a été trouvé.
+Cela me laisse penser que si elle est la source de cette attaque elle a du utiliser ce device pour se connecter à un autre device comme une connexion SSH par exemple.
+
+Communication Compliance Search:
+J'ai alors créé une nouvelle recherche avec dans laquelle j'utilise d'autres conclusions précédents que j'ai ensuite exportées.
+
+Investigate Tomo’s Device in Sentinel and Microsoft 365 Defender:
+J'ai alors découvert que le device de Tomo était connecté à celui d'Angel.
+Ce qui correspond à la théorie que j'ai émise plus haut qu'elle aurait pu sur son device se connecter à un autre device pour effectuer ses actions.
+J'ai donc après exploré les pistes en cherchant sur les devices utilisés par Tomo et j'ai découvert la présence d'évènements liées à une connexion RDP.
+
 
 Pour finir après avoir effectuer toutes les tâches.
 J'en conclu que c'est Angel Brown qui a effectué cette attaque via RDP.
